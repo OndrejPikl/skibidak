@@ -5,8 +5,8 @@ import random
 pygame.init()
 
 # Screen dimensions
-WIDTH, HEIGHT = 800, 600
-CELL_SIZE = 40  # Zvetseno z 20 na 40
+WIDTH, HEIGHT = 1500, 900
+CELL_SIZE = 100# Zvetseno z 20 na 40
 
 # Colors
 BLACK = (0, 0, 0)
@@ -18,8 +18,8 @@ pygame.display.set_caption("Snake Game")
 
 # Clock for controlling the frame rate
 clock = pygame.time.Clock()
-FPS = 60  # Plynulých 60 FPS
-SNAKE_SPEED = 7  # Rychlost hada, nastavená pro hratelnost
+FPS = 300  # Plynulých 60 FPS
+SNAKE_SPEED = 8  # Rychlost hada, nastavená pro hratelnost
 
 # Load sounds
 
@@ -67,15 +67,15 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    # Control the snake
+    # Control the snake (Arrow keys and WASD keys)
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_UP] and snake_last_dir != (0, CELL_SIZE):
+    if (keys[pygame.K_UP] or keys[pygame.K_w]) and snake_last_dir != (0, CELL_SIZE):
         snake_dir = (0, -CELL_SIZE)
-    if keys[pygame.K_DOWN] and snake_last_dir != (0, -CELL_SIZE):
+    if (keys[pygame.K_DOWN] or keys[pygame.K_s]) and snake_last_dir != (0, -CELL_SIZE):
         snake_dir = (0, CELL_SIZE)
-    if keys[pygame.K_LEFT] and snake_last_dir != (CELL_SIZE, 0):
+    if (keys[pygame.K_LEFT] or keys[pygame.K_a]) and snake_last_dir != (CELL_SIZE, 0):
         snake_dir = (-CELL_SIZE, 0)
-    if keys[pygame.K_RIGHT] and snake_last_dir != (-CELL_SIZE, 0):
+    if (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and snake_last_dir != (-CELL_SIZE, 0):
         snake_dir = (CELL_SIZE, 0)
 
     # Move the snake only at a set speed
