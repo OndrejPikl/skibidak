@@ -6,7 +6,7 @@ pygame.init()
 
 # Screen dimensions
 WIDTH, HEIGHT = 1500, 900
-CELL_SIZE = 100# Zvetseno z 20 na 40
+CELL_SIZE = 100  # Zvetseno z 20 na 40
 
 # Colors
 BLACK = (0, 0, 0)
@@ -18,8 +18,8 @@ pygame.display.set_caption("Snake Game")
 
 # Clock for controlling the frame rate
 clock = pygame.time.Clock()
-FPS = 300  # Plynulých 60 FPS
-SNAKE_SPEED = 8  # Rychlost hada, nastavená pro hratelnost
+FPS = 60  # Zvýšeno na 60 FPS
+SNAKE_SPEED = 8  # Rychlost hada, nastavena pro hratelnost
 
 # Load sounds
 
@@ -33,7 +33,9 @@ food_image = pygame.image.load("jablko_had.png")
 background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))
 snake_head_image = pygame.transform.scale(snake_head_image, (CELL_SIZE, CELL_SIZE))
 snake_body_image = pygame.transform.scale(snake_body_image, (CELL_SIZE, CELL_SIZE))
-food_image = pygame.transform.scale(food_image, (CELL_SIZE, CELL_SIZE))
+
+# Zvetseni velikosti jablka
+food_image = pygame.transform.scale(food_image, (CELL_SIZE * 1.5, CELL_SIZE * 1.5))
 
 # Snake and food initialization
 snake = [(100, 100), (100 - CELL_SIZE, 100), (100 - 2 * CELL_SIZE, 100)]
@@ -46,8 +48,10 @@ score = 0
 # Fonts
 font = pygame.font.SysFont("comicsansms", 30)
 
+
 def draw_text(text, color, x, y):
     screen.blit(font.render(text, True, color), (x, y))
+
 
 def draw_snake(snake):
     for i, segment in enumerate(snake):
@@ -56,12 +60,21 @@ def draw_snake(snake):
         else:
             screen.blit(snake_body_image, segment)
 
+
 def draw_food(food):
     screen.blit(food_image, food)
+
 
 # Main game loop
 running = True
 frame_counter = 0
+
+# Time-based movement interval (in milliseconds)
+last_move_time = pygame.time.get_ticks()
+
+# Zpomaleni hada o 25% -> prodloužení intervalu pohybu
+MOVE_INTERVAL = 150 * 1.25  # Zvýšeno o 25%
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -78,8 +91,13 @@ while running:
     if (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and snake_last_dir != (-CELL_SIZE, 0):
         snake_dir = (CELL_SIZE, 0)
 
-    # Move the snake only at a set speed
-    if frame_counter % SNAKE_SPEED == 0:
+    # Get current time for movement control
+    current_time = pygame.time.get_ticks()
+
+    # Move the snake only if the time interval has passed
+    if current_time - last_move_time > MOVE_INTERVAL:
+        last_move_time = current_time
+
         new_head = (snake[0][0] + snake_dir[0], snake[0][1] + snake_dir[1])
         snake = [new_head] + snake[:-1]
         snake_last_dir = snake_dir  # Store last direction
@@ -106,8 +124,8 @@ while running:
     draw_text(f"Score: {score}", WHITE, 10, 10)
     pygame.display.flip()
 
-    # Control the game speed
-    clock.tick(FPS)
+    # Control the game speed (FPS)
+    clock.tick(FPS)  # FPS nastaveno na 60 pro plynulý chod hry
     frame_counter += 1
 
 pygame.quit()
