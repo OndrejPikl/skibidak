@@ -1,0 +1,8 @@
+WIDTH, HEIGHT = 1500, 900
+CELL_SIZE = 100
+
+FPS = 60
+MOVE_INTERVAL = 150 * 1.25  # zpomalení hada
+
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
