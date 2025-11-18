@@ -1,0 +1,21 @@
+import pygame
+from settings import WIDTH, HEIGHT, CELL_SIZE
+
+pygame.font.init()
+
+# Načtení obrázků z assets/
+background_image = pygame.image.load("assets/pozadí-snejk,hotovo.png")
+snake_head_image = pygame.image.load("assets/hlava_hada.png")
+snake_body_image = pygame.image.load("assets/tělo_hada.png")
+food_image = pygame.image.load("assets/jablko_had.png")
+
+# Změna velikosti
+background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))
+
+snake_head_image = pygame.transform.scale(snake_head_image, (CELL_SIZE, CELL_SIZE))
+snake_body_image = pygame.transform.scale(snake_body_image, (CELL_SIZE, CELL_SIZE))
+
+food_image = pygame.transform.scale(food_image, (int(CELL_SIZE * 1.5), int(CELL_SIZE * 1.5)))
+
+# Font
+font = pygame.font.SysFont("comicsansms", 30)
