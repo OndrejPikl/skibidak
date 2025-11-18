@@ -1,0 +1,70 @@
+import pygame
+from settings import WIDTH, HEIGHT, CELL_SIZE, FPS, MOVE_INTERVAL
+from graphics import background_image
+from snake import *
+from food import *
+from ui import start_menu, game_over, draw_text
+
+pygame.init()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+clock = pygame.time.Clock()
+
+def main_game():
+    reset_snake()
+    spawn_food()
+
+    score = 0
+    last_move_time = pygame.time.get_ticks()
+
+    running = True
+    while running:
+        # Události
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        # Ovládání
+        keys = pygame.key.get_pressed()
+        if (keys[pygame.K_UP] or keys[pygame.K_w]) and snake_last_dir != (0, CELL_SIZE):
+            snake_dir = (0, -CELL_SIZE)
+        if (keys[pygame.K_DOWN] or keys[pygame.K_s]) and snake_last_dir != (0, -CELL_SIZE):
+            snake_dir = (0, CELL_SIZE)
+        if (keys[pygame.K_LEFT] or keys[pygame.K_a]) and snake_last_dir != (CELL_SIZE, 0):
+            snake_dir = (-CELL_SIZE, 0)
+        if (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and snake_last_dir != (-CELL_SIZE, 0):
+            snake_dir = (CELL_SIZE, 0)
+
+        # Pohyb hada podle času
+        current_time = pygame.time.get_ticks()
+        if current_time - last_move_time >= MOVE_INTERVAL:
+            last_move_time = current_time
+            move_snake()
+
+            # Kolize
+            if snake_collision_wall() or snake_collision_self():
+                result = game_over(screen, score)
+                if result == "restart":
+                    return main_game()
+                else:
+                    return
+
+            # Snězení jídla
+            if snake[0] == food_pos:
+                grow_snake()
+                spawn_food()
+                score += 1
+
+        # Kreslení
+        screen.blit(background_image, (0, 0))
+        draw_snake(screen)
+        draw_food(screen)
+        draw_text(screen, f"Score: {score}", 10, 10)
+
+        pygame.display.flip()
+        clock.tick(FPS)
+
+# Start menu
+if start_menu(screen) == "play":
+    main_game()
+
+pygame.quit()
