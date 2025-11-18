@@ -1,0 +1,42 @@
+import random
+from settings import WIDTH, HEIGHT, CELL_SIZE, MOVE_INTERVAL
+from graphics import snake_head_image, snake_body_image
+
+# Globální proměnné hada
+snake = []
+snake_dir = (CELL_SIZE, 0)
+snake_last_dir = snake_dir
+
+def reset_snake():
+    global snake, snake_dir, snake_last_dir
+    snake = [
+        (100, 100),
+        (100 - CELL_SIZE, 100),
+        (100 - 2 * CELL_SIZE, 100)
+    ]
+    snake_dir = (CELL_SIZE, 0)
+    snake_last_dir = snake_dir
+
+def move_snake():
+    global snake, snake_dir, snake_last_dir
+
+    new_head = (snake[0][0] + snake_dir[0], snake[0][1] + snake_dir[1])
+    snake = [new_head] + snake[:-1]
+    snake_last_dir = snake_dir
+
+def grow_snake():
+    snake.append(snake[-1])
+
+def snake_collision_self():
+    return snake[0] in snake[1:]
+
+def snake_collision_wall():
+    head = snake[0]
+    return not (0 <= head[0] < WIDTH and 0 <= head[1] < HEIGHT)
+
+def draw_snake(screen):
+    for i, part in enumerate(snake):
+        if i == 0:
+            screen.blit(snake_head_image, part)
+        else:
+            screen.blit(snake_body_image, part)
