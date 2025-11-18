@@ -1,0 +1,44 @@
+import pygame
+from settings import BLACK, WHITE, WIDTH, HEIGHT
+from graphics import font
+
+def draw_text(screen, text, x, y, color=WHITE):
+    label = font.render(text, True, color)
+    screen.blit(label, (x, y))
+
+def game_over(screen, score):
+    screen.fill(BLACK)
+    draw_text(screen, f"Game Over! Score: {score}", WIDTH // 3, HEIGHT // 3)
+    draw_text(screen, "Press R to Restart or Q to Quit", WIDTH // 3, HEIGHT // 2)
+    pygame.display.flip()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    exit()
+                if event.key == pygame.K_r:
+                    return "restart"
+
+def start_menu(screen):
+    screen.fill(BLACK)
+    draw_text(screen, "Press P to Play or Q to Quit", WIDTH // 3, HEIGHT // 3)
+    pygame.display.flip()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    exit()
+                if event.key == pygame.K_p:
+                    return "play"
