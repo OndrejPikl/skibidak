@@ -1,0 +1,15 @@
+import random
+from settings import WIDTH, HEIGHT, CELL_SIZE
+from graphics import food_image
+
+food_pos = (0, 0)
+
+def spawn_food():
+    global food_pos
+    food_pos = (
+        random.randint(0, WIDTH // CELL_SIZE - 1) * CELL_SIZE,
+        random.randint(0, HEIGHT // CELL_SIZE - 1) * CELL_SIZE
+    )
+
+def draw_food(screen):
+    screen.blit(food_image, food_pos)
