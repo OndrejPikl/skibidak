@@ -1,0 +1,198 @@
+import pygame
+import random
+import sqlite3
+from datetime import datetime
+
+
+# ---------------------------------------
+# Funkce pro databázi
+# ---------------------------------------
+def init_db():
+    conn = sqlite3.connect("snake_scores.db")
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS highscores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            player_name TEXT,
+            score INTEGER,
+            date TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+
+def save_score(name, score):
+    if not name: name = "Anonym"
+    conn = sqlite3.connect("snake_scores.db")
+    cursor = conn.cursor()
+    datum = datetime.now().strftime("%d.%m.%Y %H:%M")
+    cursor.execute("INSERT INTO highscores (player_name, score, date) VALUES (?, ?, ?)",
+                   (name, score, datum))
+    conn.commit()
+    conn.close()
+
+
+def get_top_scores():
+    conn = sqlite3.connect("snake_scores.db")
+    cursor = conn.cursor()
+    # Vybere 5 nejlepších výsledků seřazených podle skóre
+    cursor.execute("SELECT player_name, score FROM highscores ORDER BY score DESC LIMIT 5")
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
+init_db()
+
+# ---------------------------------------
+# Inicializace pygame
+# ---------------------------------------
+pygame.init()
+WIDTH, HEIGHT = 1500, 900
+CELL_SIZE = 100
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Snake Game s Databází")
+
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+YELLOW = (255, 255, 0)
+
+clock = pygame.time.Clock()
+font = pygame.font.SysFont("comicsansms", 35)
+small_font = pygame.font.SysFont("comicsansms", 25)
+
+
+# Načtení grafiky (ošetřeno, aby hra nespadla bez souborů)
+def load_img(name, size):
+    try:
+        img = pygame.image.load(name)
+        return pygame.transform.scale(img, size)
+    except:
+        surf = pygame.Surface(size)
+        surf.fill((100, 100, 100))
+        return surf
+
+
+bg = load_img("pozadí-snejk,hotovo.png", (WIDTH, HEIGHT))
+head_img = load_img("hlava_hada.png", (CELL_SIZE, CELL_SIZE))
+body_img = load_img("tělo_hada.png", (CELL_SIZE, CELL_SIZE))
+food_img = load_img("jablko_had.png", (int(CELL_SIZE * 1.5), int(CELL_SIZE * 1.5)))
+
+
+def draw_text(text, color, x, y, center=False, current_font=None):
+    if current_font is None: current_font = font
+    render = current_font.render(text, True, color)
+    rect = render.get_rect(topleft=(x, y))
+    if center: rect.center = (x, y)
+    screen.blit(render, rect)
+
+
+# ---------------------------------------
+# Herní logika
+# ---------------------------------------
+def game_over(score, player_name):
+    save_score(player_name, score)
+    top_scores = get_top_scores()
+
+    while True:
+        screen.fill(BLACK)
+        draw_text("GAME OVER", RED := (255, 0, 0), WIDTH // 2, 100, True)
+        draw_text(f"Hráč: {player_name} | Skóre: {score}", WHITE, WIDTH // 2, 180, True)
+
+        # Výpis tabulky rekordů
+        draw_text("TABULKA REKORDŮ (TOP 5):", YELLOW, WIDTH // 2, 280, True)
+
+        for i, (name, s) in enumerate(top_scores):
+            # Pořadí . Jméno ....... Skóre
+            text = f"{i + 1}. místo: {name} ....... {s} bodů"
+            draw_text(text, GREEN, WIDTH // 2, 350 + (i * 50), True, small_font)
+
+        draw_text("Stiskni 'R' pro Restart nebo 'Q' pro Konec", WHITE, WIDTH // 2, 700, True, small_font)
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: pygame.quit(); exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q: pygame.quit(); exit()
+                if event.key == pygame.K_r: return  # Vrátí se do start menu
+
+
+def main_game(player_name):
+    snake = [(100, 100), (100 - CELL_SIZE, 100), (100 - 2 * CELL_SIZE, 100)]
+    snake_dir = (CELL_SIZE, 0)
+    last_dir = snake_dir
+    food = (
+    random.randint(0, (WIDTH // CELL_SIZE) - 1) * CELL_SIZE, random.randint(0, (HEIGHT // CELL_SIZE) - 1) * CELL_SIZE)
+    score = 0
+    move_interval = 180
+    last_move = pygame.time.get_ticks()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: pygame.quit(); exit()
+
+        keys = pygame.key.get_pressed()
+        if (keys[pygame.K_UP] or keys[pygame.K_w]) and last_dir != (0, CELL_SIZE): snake_dir = (0, -CELL_SIZE)
+        if (keys[pygame.K_DOWN] or keys[pygame.K_s]) and last_dir != (0, -CELL_SIZE): snake_dir = (0, CELL_SIZE)
+        if (keys[pygame.K_LEFT] or keys[pygame.K_a]) and last_dir != (CELL_SIZE, 0): snake_dir = (-CELL_SIZE, 0)
+        if (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and last_dir != (-CELL_SIZE, 0): snake_dir = (CELL_SIZE, 0)
+
+        now = pygame.time.get_ticks()
+        if now - last_move > move_interval:
+            last_move = now
+            new_head = (snake[0][0] + snake_dir[0], snake[0][1] + snake_dir[1])
+
+            if (new_head[0] < 0 or new_head[1] < 0 or new_head[0] >= WIDTH or new_head[
+                1] >= HEIGHT or new_head in snake):
+                game_over(score, player_name)
+                return
+
+            snake = [new_head] + snake[:-1]
+            last_dir = snake_dir
+
+            if new_head == food:
+                snake.append(snake[-1])
+                score += 1
+                food = (random.randint(0, (WIDTH // CELL_SIZE) - 1) * CELL_SIZE,
+                        random.randint(0, (HEIGHT // CELL_SIZE) - 1) * CELL_SIZE)
+
+        screen.blit(bg, (0, 0))
+        for i, seg in enumerate(snake):
+            screen.blit(head_img if i == 0 else body_img, seg)
+        screen.blit(food_img, food)
+        draw_text(f"Skóre: {score}", WHITE, 20, 20)
+        pygame.display.flip()
+        clock.tick(60)
+
+
+def start_menu():
+    player_name = ""
+    while True:
+        screen.fill(BLACK)
+        draw_text("VÍTEJ V HADU", GREEN, WIDTH // 2, 200, True)
+        draw_text("Napiš své jméno:", WHITE, WIDTH // 2, 350, True, small_font)
+
+        # Vykreslení jména, které hráč píše
+        pygame.draw.rect(screen, WHITE, (WIDTH // 2 - 150, 400, 300, 50), 2)
+        draw_text(player_name + "|", YELLOW, WIDTH // 2, 425, True)
+
+        draw_text("Potvrď jméno klávesou ENTER a hraj", WHITE, WIDTH // 2, 550, True, small_font)
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: pygame.quit(); exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:  # ENTER
+                    if player_name.strip() != "":
+                        main_game(player_name)
+                        player_name = ""  # Reset jména pro další hru
+                elif event.key == pygame.K_BACKSPACE:
+                    player_name = player_name[:-1]
+                else:
+                    if len(player_name) < 12:  # Limit délky jména
+                        player_name += event.unicode
+
+
+start_menu()
