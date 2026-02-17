@@ -1,0 +1,44 @@
+Table Player {
+  id int [pk, increment]
+  name varchar
+  created_at datetime
+}
+
+Table Game {
+  id int [pk, increment]
+  player_id int [ref: > Player.id]
+  started_at datetime
+  ended_at datetime
+  game_over boolean
+}
+
+Table Score {
+  id int [pk, increment]
+  game_id int [ref: > Game.id]
+  value int
+}
+
+Table Snake {
+  id int [pk, increment]
+  game_id int [ref: > Game.id]
+  direction_x int
+  direction_y int
+}
+
+Table SnakeSegment {
+  id int [pk, increment]
+  snake_id int [ref: > Snake.id]
+  position_x int
+  position_y int
+  segment_order int
+}
+
+Table Food {
+  id int [pk, increment]
+  game_id int [ref: > Game.id]
+  position_x int
+  position_y int
+}
+
+
+Ref: "Game"."started_at" < "Game"."game_over"
