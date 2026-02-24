@@ -1,0 +1,34 @@
+tohle dej pod import pygame:
+
+import sqlite3
+from datetime import datetime
+
+tohle dej kamkoliv nad main_game:
+
+def init_db():
+    conn = sqlite3.connect("snake_scores.db")
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS highscores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            player_name TEXT,
+            score INTEGER,
+            date TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def save_score(name, score):
+    conn = sqlite3.connect("snake_scores.db")
+    cursor = conn.cursor()
+    datum = datetime.now().strftime("%d.%m.%Y %H:%M")
+    cursor.execute("INSERT INTO highscores (player_name, score, date) VALUES (?, ?, ?)", 
+                   (name, score, datum))
+    conn.commit()
+    conn.close()
+
+init_db()
+
+tohle dej pod game_over:
+save_score("Hráč 1", score)
