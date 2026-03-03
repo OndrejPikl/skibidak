@@ -1,0 +1,37 @@
+import sqlite3
+from datetime import datetime
+
+def init_db():
+    conn = sqlite3.connect("snake_scores.db")
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS highscores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            player_name TEXT,
+            score INTEGER,
+            date TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def save_score(name, score):
+    conn = sqlite3.connect("snake_scores.db")
+    cursor = conn.cursor()
+
+    # Kontrola, jestli už jméno existuje
+    cursor.execute("SELECT 1 FROM highscores WHERE player_name = ?", (name,))
+    if cursor.fetchone():
+        conn.close()
+        return False  # Jméno už existuje
+
+    datum = datetime.now().strftime("%d.%m.%Y %H:%M")
+    cursor.execute(
+        "INSERT INTO highscores (player_name, score, date) VALUES (?, ?, ?)", 
+        (name, score, datum)
+    )
+    conn.commit()
+    conn.close()
+    return True  # Uloženo úspěšně
+
+init_db()
