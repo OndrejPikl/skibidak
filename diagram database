@@ -1,0 +1,11 @@
+Table players {
+  id integer [pk, increment]
+  name text
+}
+
+Table highscores {
+  id integer [pk, increment]
+  player_id integer [ref: > players.id]
+  score integer
+  created_at datetime
+}
